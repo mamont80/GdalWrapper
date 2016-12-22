@@ -1,0 +1,31 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 11.00
+# Visual Studio 2010
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TestGdalWrapper", "TestGdalWrapper.csproj", "{9A95F096-7E01-4D1D-8FAB-EE84E55FF34E}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Test", "Test", "{98CD1412-DA8F-4657-81D1-7AC50CFE49F0}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CreateData", "..\Tests\CreateData\CreateData.csproj", "{6195CE1C-87F7-4097-B9D3-E2E462A08B78}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|x86 = Debug|x86
+		Release|x86 = Release|x86
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{9A95F096-7E01-4D1D-8FAB-EE84E55FF34E}.Debug|x86.ActiveCfg = Debug|x86
+		{9A95F096-7E01-4D1D-8FAB-EE84E55FF34E}.Debug|x86.Build.0 = Debug|x86
+		{9A95F096-7E01-4D1D-8FAB-EE84E55FF34E}.Release|x86.ActiveCfg = Release|x86
+		{9A95F096-7E01-4D1D-8FAB-EE84E55FF34E}.Release|x86.Build.0 = Release|x86
+		{6195CE1C-87F7-4097-B9D3-E2E462A08B78}.Debug|x86.ActiveCfg = Debug|x86
+		{6195CE1C-87F7-4097-B9D3-E2E462A08B78}.Debug|x86.Build.0 = Debug|x86
+		{6195CE1C-87F7-4097-B9D3-E2E462A08B78}.Release|x86.ActiveCfg = Release|x86
+		{6195CE1C-87F7-4097-B9D3-E2E462A08B78}.Release|x86.Build.0 = Release|x86
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{6195CE1C-87F7-4097-B9D3-E2E462A08B78} = {98CD1412-DA8F-4657-81D1-7AC50CFE49F0}
+	EndGlobalSection
+EndGlobal

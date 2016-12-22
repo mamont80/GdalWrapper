@@ -1,0 +1,183 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using OSGeo.OGR;
+using System.Runtime.InteropServices;
+
+namespace GeometryUtil
+{
+    /*Делаем затык ошибки которая появилась в GDal 1.11
+     * Не правильно интерпретируется кодировка для TAB/mif файлов. Русские буквы не возможно прочитать.
+     */
+    public static class MyOgrWrapper
+    {
+        public const string GdalDllName = "gdal111.dll";
+        //OGRDataSourceH 	OGROpen (const char *, int, OGRSFDriverH *)
+        [DllImport(GdalDllName, CallingConvention = CallingConvention.Cdecl)]
+        public static extern IntPtr OGROpen(byte[] filename, int idx, IntPtr hh);
+
+        //OGRLayerH OGR_DS_GetLayer 	( 	OGRDataSourceH  	hDS,int  	iLayer	 ) 	
+        [DllImport(GdalDllName, CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Ansi)]
+        public static extern IntPtr OGR_DS_GetLayer(IntPtr hDS, int ilayer);
+
+        //    OGRLayerShadow* layer = (OGRLayerShadow*) OGR_DS_GetLayerByName(self, layer_name);
+        [DllImport(GdalDllName, CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Ansi)]
+        public static extern IntPtr OGR_DS_GetLayerByName(IntPtr hDS, string name);
+
+
+        //OGRFeatureH OGR_L_GetNextFeature 	( 	OGRLayerH  	hLayer 	 )  	
+        [DllImport(GdalDllName, CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Ansi)]
+        public static extern IntPtr OGR_L_GetNextFeature(IntPtr hLayer);
+
+        //const char* OGR_F_GetFieldAsString 	( 	OGRFeatureH  	hFeat,int  	iField	 ) 	
+        [DllImport(GdalDllName, CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Unicode, ExactSpelling = false)]
+        public static extern IntPtr OGR_F_GetFieldAsString(IntPtr hLayer, int index);
+
+        //const char * OGR_L_GetName	(	OGRLayerH 	hLayer	 ) 	
+        [DllImport(GdalDllName, CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Ansi)]
+        public static extern IntPtr OGR_L_GetName(IntPtr hLayer);
+
+        //OGR_L_CreateField (OGRLayerH, OGRFieldDefnH, int)
+        [DllImport(GdalDllName, CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Ansi)]
+        public static extern IntPtr OGR_L_CreateField(IntPtr hLayer, IntPtr hFieldDefn, int bApproxOK);
+
+        //void OGR_Fld_SetName 	( 	OGRFieldDefnH  	hDefn, const char *  	pszName	 ) 	
+        [DllImport(GdalDllName, CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Ansi)]
+        public static extern void OGR_Fld_SetName(IntPtr hLayer, byte[] name);
+
+        //OGRFieldDefnH OGR_Fld_Create 	( 	const char *  	pszName, OGRFieldType  	eType	 ) 	
+        [DllImport(GdalDllName, CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Ansi)]
+        public static extern IntPtr OGR_Fld_Create(byte[] name, int fieldType);
+
+        public static string StringFromPtr(IntPtr buf, Encoding enc)
+        {
+            List<byte> bytes = new List<byte>();
+            unsafe
+            {
+                byte* b;
+                b = (byte*)buf;
+                byte b1 = *b;
+                while (b1 != 0)
+                {
+                    bytes.Add(b1);
+                    b++;
+                    b1 = *b;
+                }
+            }
+            string text;
+            if (enc != null)
+                text = enc.GetString(bytes.ToArray());
+            else text = Encoding.Default.GetString(bytes.ToArray());
+            return text;
+        }
+    }
+
+    public class MyOgrDataSource : OSGeo.OGR.DataSource
+    {
+        public IntPtr Handle { get; internal set; }
+        public MyOgrDataSource(IntPtr cPtr, bool cMemoryOwn, object parent) : base(cPtr, cMemoryOwn, parent)
+        {
+            Handle = cPtr;
+        }
+
+        public static MyOgrDataSource MyOpen(string filename, int flag)
+        {
+            IntPtr hDs = MyOgrWrapper.OGROpen(Encoding.UTF8.GetBytes(filename), flag, IntPtr.Zero);
+            if (hDs == IntPtr.Zero) return null;
+            MyOgrDataSource ds = new MyOgrDataSource(hDs, true, null);
+            return ds;
+        }
+
+        public MyOgrLayer MyGetLayerByIndex(int index)
+        {
+            IntPtr hLayer = MyOgrWrapper.OGR_DS_GetLayer(Handle, index);
+            if (hLayer == IntPtr.Zero) return null;
+            MyOgrLayer layer = new MyOgrLayer(hLayer, false, this);
+            return layer;
+        }
+
+        public MyOgrLayer MyGetLayerByName(string name)
+        {
+            IntPtr hLayer = MyOgrWrapper.OGR_DS_GetLayerByName(Handle, name);
+            if (hLayer == IntPtr.Zero) return null;
+            MyOgrLayer layer = new MyOgrLayer(hLayer, false, this);
+            return layer;
+        }
+    }
+
+    public class MyOgrLayer : OSGeo.OGR.Layer
+    {
+        public IntPtr Handle { get; internal set; }
+
+        public MyOgrLayer(IntPtr cPtr, bool cMemoryOwn, object parent):base(cPtr, cMemoryOwn, parent)
+        {
+            Handle = cPtr;
+            Geometry g;
+            new Geometry(cPtr, false, ThisOwn_false());
+        }
+
+        public MyOgrFeature MyGetNextFeature()
+        {
+            IntPtr hFeature = MyOgrWrapper.OGR_L_GetNextFeature(Handle);
+            if (hFeature == IntPtr.Zero) return null;
+            MyOgrFeature f = new MyOgrFeature(hFeature, true, null);
+            return f;
+        }
+
+        public string MyGetName(Encoding enc)
+        {
+            var buf = MyOgrWrapper.OGR_L_GetName(Handle);
+            return MyOgrWrapper.StringFromPtr(buf, enc);
+        }
+
+        public void MyCreateField(MyOgrFieldDef field)
+        {
+            MyOgrWrapper.OGR_L_CreateField(Handle, field.Handle, 1);
+        }
+    }
+
+    public class MyOgrFieldDef : OSGeo.OGR.FieldDefn
+    {
+        public IntPtr Handle { get; internal set; }
+
+        public MyOgrFieldDef(IntPtr cPtr, bool cMemoryOwn, object parent)
+            : base(cPtr, cMemoryOwn, parent)
+        {
+            Handle = cPtr;
+        }
+
+        public static MyOgrFieldDef Create(string name, FieldType type, Encoding enc = null)
+        {
+            Encoding enc2 = Encoding.UTF8;
+            if (enc != null) enc2 = enc;
+            byte[] buf = enc2.GetBytes(name);
+            IntPtr h = MyOgrWrapper.OGR_Fld_Create(buf, (int)type);
+            return new MyOgrFieldDef(h, true, null);
+        }
+
+        public void MySetName(string name, Encoding enc)
+        {
+            Encoding enc2 = Encoding.UTF8;
+            if (enc != null) enc2 = enc;
+            byte[] buf = enc2.GetBytes(name);
+            MyOgrWrapper.OGR_Fld_SetName(Handle, buf);
+        }
+    }
+
+    public class MyOgrFeature : OSGeo.OGR.Feature
+    {
+        public IntPtr Handle { get; internal set; }
+
+        public MyOgrFeature(IntPtr cPtr, bool cMemoryOwn, object parent) : base(cPtr, cMemoryOwn, parent)
+        {
+            Handle = cPtr;
+        }
+
+        public string MyGetFieldAsString(int index, Encoding enc)
+        {
+            var buf = MyOgrWrapper.OGR_F_GetFieldAsString(Handle, index);
+            return MyOgrWrapper.StringFromPtr(buf, enc);
+        }
+    }
+}
