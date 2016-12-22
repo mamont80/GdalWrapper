@@ -8,8 +8,8 @@
     <ProjectGuid>{9A95F096-7E01-4D1D-8FAB-EE84E55FF34E}</ProjectGuid>
     <OutputType>Exe</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>TestGdalWrapper</RootNamespace>
-    <AssemblyName>TestGdalWrapper</AssemblyName>
+    <RootNamespace>GdalWrapper</RootNamespace>
+    <AssemblyName>GdalWrapper</AssemblyName>
     <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
     <TargetFrameworkProfile>
     </TargetFrameworkProfile>

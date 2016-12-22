@@ -47,9 +47,9 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\TestGdalWrapper\TestGdalWrapper.csproj">
+    <ProjectReference Include="..\..\TestGdalWrapper\GdalWrapper.csproj">
       <Project>{9A95F096-7E01-4D1D-8FAB-EE84E55FF34E}</Project>
-      <Name>TestGdalWrapper</Name>
+      <Name>GdalWrapper</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

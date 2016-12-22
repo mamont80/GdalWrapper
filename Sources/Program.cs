@@ -5,7 +5,7 @@ using System.Text;
 using Scanex.Gdal;
 using System.Runtime.InteropServices;
 
-namespace TestGdalWrapper
+namespace GdalWrapper
 {
     class Program
     {

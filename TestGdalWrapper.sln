@@ -1,11 +1,11 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 11.00
 # Visual Studio 2010
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TestGdalWrapper", "TestGdalWrapper.csproj", "{9A95F096-7E01-4D1D-8FAB-EE84E55FF34E}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GdalWrapper", "Sources\GdalWrapper.csproj", "{9A95F096-7E01-4D1D-8FAB-EE84E55FF34E}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Test", "Test", "{98CD1412-DA8F-4657-81D1-7AC50CFE49F0}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CreateData", "..\Tests\CreateData\CreateData.csproj", "{6195CE1C-87F7-4097-B9D3-E2E462A08B78}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CreateData", "Tests\CreateData\CreateData.csproj", "{6195CE1C-87F7-4097-B9D3-E2E462A08B78}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
