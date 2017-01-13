@@ -343,5 +343,15 @@ namespace Scanex.Gdal
             int errCode = PInvokeOgr.OGR_L_GetExtentEx(Handle, geomFieldIndex, out envelope, Convert.ToInt32(force));
             return Errors.IsNoError(errCode);
         }
+
+        /// <summary>
+        /// Return the layer geometry type.
+        /// This returns the same result as OGR_FD_GetGeomType(OGR_L_GetLayerDefn(hLayer)), but for a few drivers, calling OGR_L_GetGeomType() directly can avoid lengthy layer definition initialization.For layers with multiple geometry fields, this method only returns the geometry type of the first geometry column. For other columns, use OGR_GFld_GetType(OGR_FD_GetGeomFieldDefn(OGR_L_GetLayerDefn(hLayer), i)). For layers without any geometry field, this method returns wkbNone.
+        /// </summary>
+        /// <returns></returns>
+        public wkbGeometryType GetGeomType()
+        {
+            return PInvokeOgr.OGR_L_GetGeomType(Handle);
+        }
     }
 }

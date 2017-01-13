@@ -504,6 +504,15 @@ namespace Scanex.Gdal
             PInvokeOgr.OGR_F_SetFieldDateTime(Handle, iField, value.Year, value.Month, value.Day, value.Hour, value.Minute, value.Second, flag);
         }
         /// <summary>
+        /// Set field to datetime. 
+        /// </summary>
+        public void SetFieldTime(int iField, TimeSpan value)
+        {
+            int flag;
+            flag = 1;
+            PInvokeOgr.OGR_F_SetFieldDateTime(Handle, iField, 0, 0, 0, (int)value.TotalHours, (int)value.TotalMinutes, (int)value.TotalSeconds, flag);
+        }
+        /// <summary>
         /// Set field to double value.
         /// OFTInteger, OFTInteger64 and OFTReal fields will be set directly. OFTString fields will be assigned a string representation of the value, but not necessarily taking into account formatting constraints on this field. Other field types may be unaffected.
         /// </summary>
@@ -642,6 +651,11 @@ namespace Scanex.Gdal
         public void SetField(int indexField, string value)
         {
             SetFieldString(indexField, value);
+        }
+
+        public void SetField(int indexField, TimeSpan value)
+        {
+            SetFieldTime(indexField, value);
         }
 
         public void SetField(int indexField, string value, Encoding encoding)

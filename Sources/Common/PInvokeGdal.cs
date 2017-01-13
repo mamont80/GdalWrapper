@@ -112,9 +112,26 @@ namespace Scanex.Gdal
         #endregion
 
         #region VSI
-        //VSIUnlink
+        //int CPL_DLL VSIUnlink( const char * pathname );
         [DllImport(PInvokeOgr.GdalDllName, CallingConvention = CallingConvention.Cdecl)]
         public static extern int VSIUnlink(IntPtr name);
+
+        //VSILFILE CPL_DLL *VSIFileFromMemBuffer( const char *pszFilename,GByte *pabyData,vsi_l_offset nDataLength,int bTakeOwnership ) CPL_WARN_UNUSED_RESULT;
+        [DllImport(PInvokeOgr.GdalDllName, CallingConvention = CallingConvention.Cdecl)]
+        public static extern IntPtr VSIFileFromMemBuffer(IntPtr filenameUtf8, IntPtr data, int dataLength, int takeOwnership);
+
+        //int CPL_DLL     VSIFCloseL( VSILFILE * ) EXPERIMENTAL_CPL_WARN_UNUSED_RESULT;
+        [DllImport(PInvokeOgr.GdalDllName, CallingConvention = CallingConvention.Cdecl)]
+        public static extern int VSIFCloseL(IntPtr fileHandle);
+        
+        //void CPL_DLL   *VSIMalloc( size_t ) CPL_WARN_UNUSED_RESULT;
+        [DllImport(PInvokeOgr.GdalDllName, CallingConvention = CallingConvention.Cdecl)]
+        public static extern IntPtr VSIMalloc(int size);
+
+        //void CPL_DLL    VSIFree( void * );
+        [DllImport(PInvokeOgr.GdalDllName, CallingConvention = CallingConvention.Cdecl)]
+        public static extern void VSIFree(IntPtr mem);
+
         #endregion
 
 
@@ -253,7 +270,7 @@ namespace Scanex.Gdal
 
         //const char* GDALGetProjectionRef	(	GDALDatasetH 	hDS	)	
         [DllImport(PInvokeOgr.GdalDllName, CallingConvention = CallingConvention.StdCall)]
-        public static extern string GDALGetProjectionRef(IntPtr hDS);
+        public static extern IntPtr GDALGetProjectionRef(IntPtr hDS);
 
         //CPLErr GDALSetProjection	(	GDALDatasetH 	hDS,const char * 	pszProjection )		
         [DllImport(PInvokeOgr.GdalDllName, CallingConvention = CallingConvention.StdCall)]
@@ -296,6 +313,170 @@ namespace Scanex.Gdal
         public static extern int GDALRasterIO(IntPtr hDS, RWFlag RWFlag, int nXOff, int nYOff, int nXSize, int nYSize, IntPtr pData, int nBufXSize, int nBufYSize, DataType eBufType,
                                                      int nPixelSpace, int nLineSpace);
 
+        //CPLErr GDALGetRasterStatistics	(	GDALRasterBandH 	hBand,int 	bApproxOK,int 	bForce,double * 	pdfMin,double * 	pdfMax,double * 	pdfMean,double * 	pdfStdDev )	
+        [DllImport(PInvokeOgr.GdalDllName, CallingConvention = CallingConvention.StdCall)]
+        public static extern int GDALGetRasterStatistics(IntPtr hBand, int approxOK, int force, out double min, out double max, out double mean, out double stdDev);
         #endregion
+
+        #region Utils
+        //GDALWarpAppOptions* GDALWarpAppOptionsNew	(	char ** 	papszArgv,GDALWarpAppOptionsForBinary * 	psOptionsForBinary )	
+        [DllImport(PInvokeOgr.GdalDllName, CallingConvention = CallingConvention.Cdecl)]
+        public static extern IntPtr GDALWarpAppOptionsNew([In, Out] IntPtr[] args, IntPtr optionsForBinary);
+
+        //GDALDatasetH GDALWarp	(	const char * 	pszDest,GDALDatasetH 	hDstDS,int 	nSrcCount,GDALDatasetH * 	pahSrcDS,const GDALWarpAppOptions * 	psOptionsIn,int * 	pbUsageError )	
+        [DllImport(PInvokeOgr.GdalDllName, CallingConvention = CallingConvention.Cdecl)]
+        public static extern IntPtr GDALWarp(IntPtr dest, IntPtr dstDS, int srcCount, [In, Out] IntPtr[] srcDS, IntPtr options, out int usageError);
+
+        //void GDALWarpAppOptionsFree	(	GDALWarpAppOptions * 	psOptions	)	
+        [DllImport(PInvokeOgr.GdalDllName, CallingConvention = CallingConvention.Cdecl)]
+        public static extern void GDALWarpAppOptionsFree(IntPtr options);
+
+        //void GDALWarpAppOptionsSetProgress	(	GDALWarpAppOptions * 	psOptions,GDALProgressFunc 	pfnProgress,void * 	pProgressData )	
+        [DllImport(PInvokeOgr.GdalDllName, CallingConvention = CallingConvention.Cdecl)]
+        public static extern void GDALWarpAppOptionsSetProgress(IntPtr options, Gdal.GDALProgressFuncDelegate progress, IntPtr progressData);
+
+        //void GDALWarpAppOptionsSetWarpOption	(	GDALWarpAppOptions * 	psOptions,const char * 	pszKey,const char * 	pszValue )	
+        [DllImport(PInvokeOgr.GdalDllName, CallingConvention = CallingConvention.Cdecl)]
+        public static extern void GDALWarpAppOptionsSetWarpOption(IntPtr options, IntPtr key, IntPtr value);
+        #endregion
+    }
+
+    [StructLayout(LayoutKind.Sequential)]
+    public struct GDALWarpAppOptions
+    {
+        /*! set georeferenced extents of output file to be created (in target SRS by default,
+            or in the SRS specified with pszTE_SRS) */
+        double dfMinX;
+        double dfMinY;
+        double dfMaxX;
+        double dfMaxY;
+
+        /*! the SRS in which to interpret the coordinates given in GDALWarpAppOptions::dfMinX,
+            GDALWarpAppOptions::dfMinY, GDALWarpAppOptions::dfMaxX and GDALWarpAppOptions::dfMaxY.
+            The SRS may be any of the usual GDAL/OGR forms,
+            complete WKT, PROJ.4, EPSG:n or a file containing the WKT. It is a
+            convenience e.g. when knowing the output coordinates in a
+            geodetic long/lat SRS, but still wanting a result in a projected
+            coordinate system. */
+        IntPtr pszTE_SRS;
+
+        /*! set output file resolution (in target georeferenced units) */
+        double dfXRes;
+        double dfYRes;
+
+        /*! align the coordinates of the extent of the output file to the values of the
+            GDALWarpAppOptions::dfXRes and GDALWarpAppOptions::dfYRes, such that the
+            aligned extent includes the minimum extent. */
+        int bTargetAlignedPixels;
+
+        /*! set output file size in pixels and lines. If GDALWarpAppOptions::nForcePixels
+            or GDALWarpAppOptions::nForceLines is set to 0, the other dimension will be
+            guessed from the computed resolution. Note that GDALWarpAppOptions::nForcePixels and
+            GDALWarpAppOptions::nForceLines cannot be used with GDALWarpAppOptions::dfXRes and
+            GDALWarpAppOptions::dfYRes. */
+        int nForcePixels;
+        int nForceLines;
+
+        /*! allow or suppress progress monitor and other non-error output */
+        int bQuiet;
+
+        /*! the progress function to use */
+        IntPtr pfnProgress;
+
+        /*! pointer to the progress data variable */
+        IntPtr pProgressData;
+
+        /*! creates an output alpha band to identify nodata (unset/transparent) pixels
+            when set to TRUE */
+        int bEnableDstAlpha;
+
+        int bEnableSrcAlpha;
+
+        /*! output format. The default is GeoTIFF (GTiff). Use the short format name. */
+        IntPtr pszFormat;
+
+        int bCreateOutput;
+
+        /*! list of warp options. ("NAME1=VALUE1","NAME2=VALUE2",...). The
+            GDALWarpOptions::papszWarpOptions docs show all options. */
+        IntPtr papszWarpOptions;
+
+        double dfErrorThreshold;
+
+        /*! the amount of memory (in megabytes) that the warp API is allowed
+            to use for caching. */
+        double dfWarpMemoryLimit;
+
+        /*! list of create options for the output format driver. See format
+            specific documentation for legal creation options for each format. */
+        IntPtr papszCreateOptions;
+
+        /*! the data type of the output bands */
+        int eOutputType;
+
+        /*! working pixel data type. The data type of pixels in the source
+            image and destination image buffers. */
+        int eWorkingType;
+
+        /*! the resampling method. Available methods are: near, bilinear,
+            cubic, cubicspline, lanczos, average, mode, max, min, med,
+            q1, q3 */
+        int eResampleAlg;
+
+        /*! nodata masking values for input bands (different values can be supplied
+            for each band). ("value1 value2 ..."). Masked values will not be used
+            in interpolation. Use a value of "None" to ignore intrinsic nodata
+            settings on the source dataset. */
+        IntPtr pszSrcNodata;
+
+        /*! nodata values for output bands (different values can be supplied for
+            each band). ("value1 value2 ..."). New files will be initialized to
+            this value and if possible the nodata value will be recorded in the
+            output file. Use a value of "None" to ensure that nodata is not defined.
+            If this argument is not used then nodata values will be copied from
+            the source dataset. */
+        IntPtr pszDstNodata;
+
+        /*! use multithreaded warping implementation. Multiple threads will be used
+            to process chunks of image and perform input/output operation simultaneously. */
+        int bMulti;
+
+        /*! list of transformer options suitable to pass to GDALCreateGenImgProjTransformer2().
+            ("NAME1=VALUE1","NAME2=VALUE2",...) */
+        IntPtr papszTO;
+
+        /*! enable use of a blend cutline from the name OGR support pszCutlineDSName */
+        IntPtr pszCutlineDSName;
+
+        /*! the named layer to be selected from the cutline datasource */
+        IntPtr pszCLayer;
+
+        /*! restrict desired cutline features based on attribute query */
+        IntPtr pszCWHERE;
+
+        /*! SQL query to select the cutline features instead of from a layer
+            with pszCLayer */
+        IntPtr pszCSQL;
+
+        /*! crop the extent of the target dataset to the extent of the cutline */
+        int bCropToCutline;
+
+        /*! copy dataset and band metadata will be copied from the first source dataset. Items that differ between
+            source datasets will be set "*" (see GDALWarpAppOptions::pszMDConflictValue) */
+        int bCopyMetadata;
+
+        /*! copy band information from the first source dataset */
+        int bCopyBandInfo;
+
+        /*! value to set metadata items that conflict between source datasets (default is "*").
+            Use "" to remove conflicting items. */
+        IntPtr pszMDConflictValue;
+
+        /*! set the color interpretation of the bands of the target dataset from the source dataset */
+        int bSetColorInterpretation;
+
+        /*! overview level of source files to be used */
+        int nOvLevel;
+
     }
 }

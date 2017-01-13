@@ -42,11 +42,21 @@ namespace Scanex.Gdal
         /// </summary>
         /// <param name="indexLayer">a layer number between 0 and GetLayerCount()-1.</param>
         /// <returns>the layer, or NULL if iLayer is out of range or an error occurs.</returns>
-        public Scanex.Gdal.Layer GetLayer(int indexLayer)
+        public Layer GetLayer(int indexLayer)
         {
             IntPtr p = PInvokeGdal.GDALDatasetGetLayer(Handle, indexLayer);
             if (p == IntPtr.Zero) return null;
             return new Scanex.Gdal.Layer(p, false, this);
+        }
+
+        /// <summary>
+        /// Fetch a layer by index. Alias for GetLayer()
+        /// </summary>
+        /// <param name="indexLayer">a layer number between 0 and GetLayerCount()-1.</param>
+        /// <returns>the layer, or NULL if iLayer is out of range or an error occurs.</returns>
+        public Layer GetLayerByIndex(int indexLayer)
+        {
+            return GetLayer(indexLayer);
         }
 
         /// <summary>
@@ -68,6 +78,14 @@ namespace Scanex.Gdal
         {
             IntPtr p = PInvokeGdal.GDALGetDatasetDriver(Handle);
             return new Driver(p, false, this);
+        }
+
+        /// <summary>
+        /// Alias for GetDatasetDriver() method.
+        /// </summary>
+        public Driver GetDriver()
+        {
+            return GetDatasetDriver();
         }
 
         /// <summary>
@@ -132,13 +150,28 @@ namespace Scanex.Gdal
         {
             return PInvokeGdal.GDALGetRasterXSize(Handle);
         }
+        /// <summary>
+        /// Fetch raster width in pixels. Alias GetRasterXSize()
+        /// </summary>
+        public int RasterXSize
+        {
+            get { return GetRasterXSize(); }
+        }
 
         /// <summary>
-        /// Fetch raster width in pixels.
+        /// Fetch raster height in pixels.
         /// </summary>
         public int GetRasterYSize()
         {
             return PInvokeGdal.GDALGetRasterYSize(Handle);
+        }
+
+        /// <summary>
+        /// Fetch raster height in pixels. Alias for GetRasterYSize()
+        /// </summary>
+        public int RasterYSize
+        {
+            get { return GetRasterYSize(); }
         }
         /// <summary>
         /// Fetch the number of raster bands on this dataset.
@@ -146,6 +179,14 @@ namespace Scanex.Gdal
         public int GetRasterCount()
         {
             return PInvokeGdal.GDALGetRasterCount(Handle);
+        }
+
+        /// <summary>
+        /// Fetch the number of raster bands on this dataset. Alias for GetRasterCount() method.
+        /// </summary>
+        public int RasterCount
+        {
+            get { return GetRasterCount(); }
         }
 
         /// <summary>
@@ -321,7 +362,8 @@ namespace Scanex.Gdal
         /// </summary>
         public string GetProjectionRef()
         {
-            return PInvokeGdal.GDALGetProjectionRef(Handle);
+            var p = PInvokeGdal.GDALGetProjectionRef(Handle);
+            return MarshalUtils.PtrToStringEncoding(p, Encoding.ASCII);
         }
 
         /// <summary>

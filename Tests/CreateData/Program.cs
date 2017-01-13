@@ -66,8 +66,15 @@ namespace CreateData
         public static void Main(string[] args)
         {
             string path = Environment.GetEnvironmentVariable("Path");
-            path += @";D:\Gdal\release-1500-gdal-2-1-0-mapserver-7-0-1\bin";
+            //path += @";D:\Gdal\release-1500-gdal-2-1-0-mapserver-7-0-1\bin";
+            path += @";D:\GeoMixer_Work\Utils\gdal212\x86\bins";
+            
             Environment.SetEnvironmentVariable("Path", path);
+            Gdal.AllRegister();
+
+            string fn = @"d:\geomixer_work\UserFolder\LayerManager 85ce4ae9\world_simple\TM_WORLD_BORDERS_SIMPL-0.3.shp";
+            var re = Gdal.OpenEx(fn, GdalOpenDriverKind.Vector, GdalOpenAccessMode.ReadOnly, GdalOpenSharedMode.Shared);
+
             args = new string[2]{ @"123.shp", "123"};
             if (args.Length != 2) usage();
 
@@ -77,7 +84,6 @@ namespace CreateData
             /* -------------------------------------------------------------------- */
             /*      Register format(s).                                             */
             /* -------------------------------------------------------------------- */
-            Gdal.AllRegister();
 
             /* -------------------------------------------------------------------- */
             /*      Get driver                                                      */
@@ -221,7 +227,7 @@ namespace CreateData
             {
                 FieldDefn fdef = def.GetFieldDefn(iAttr);
 
-                Console.WriteLine(fdef.GetNameRef() + ": " +
+                Console.WriteLine(fdef.GetName() + ": " +
                     fdef.GetFieldTypeName(fdef.GetFieldType()) + " (" +
                     fdef.GetWidth() + "." +
                     fdef.GetPrecision() + ")");
@@ -246,7 +252,7 @@ namespace CreateData
             {
                 FieldDefn fdef = def.GetFieldDefn(iField);
 
-                Console.Write(fdef.GetNameRef() + " (" +
+                Console.Write(fdef.GetName() + " (" +
                     fdef.GetFieldTypeName(fdef.GetFieldType()) + ") = ");
 
                 if (feat.IsFieldSet(iField))

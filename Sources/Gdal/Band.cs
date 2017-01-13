@@ -45,6 +45,14 @@ namespace Scanex.Gdal
         }
 
         /// <summary>
+        /// Fetch XSize of raster.
+        /// </summary>
+        public int XSize
+        {
+            get { return GetRasterBandXSize(); }
+        }
+
+        /// <summary>
         /// Fetch YSize of raster.
         /// </summary>
         public int GetRasterBandYSize()
@@ -53,12 +61,38 @@ namespace Scanex.Gdal
         }
 
         /// <summary>
+        /// Fetch YSize of raster.
+        /// </summary>
+        public int YSize
+        {
+            get { return GetRasterBandYSize(); }
+        }
+
+
+        /// <summary>
         /// Fetch the pixel data type for this band.
         /// </summary>
         public DataType GetRasterDataType()
         {
             return PInvokeGdal.GDALGetRasterDataType(Handle);
         }
+        
+        /// <summary>
+        /// Fetch the pixel data type for this band.
+        /// </summary>
+        public DataType DataType
+        {
+            get { return PInvokeGdal.GDALGetRasterDataType(Handle); }
+        }
+
+        /// <summary>
+        /// Fetch image statistics.
+        /// </summary>
+        public CPLErr GetStatistics(bool approxOK, bool force, out double min, out double max, out double mean, out double stdDev)
+        {
+            return (CPLErr)PInvokeGdal.GDALGetRasterStatistics(Handle, Convert.ToInt32(approxOK), Convert.ToInt32(force), out min, out max, out mean, out stdDev);
+        }
+
 
         public CPLErr RasterIO(RWFlag eRWFlag, int xOff, int yOff, int xSize, int ySize, IntPtr pointer, int buf_xSize, int buf_ySize, DataType bufType, int pixelSpace, int lineSpace)
         {
@@ -202,6 +236,18 @@ namespace Scanex.Gdal
                                  int pixelSpace, int lineSpace)
         {
             return RasterIO(RWFlag.GF_Write, xOff, yOff, xSize, ySize, buffer, buf_xSize, buf_ySize, pixelSpace, lineSpace);
+        }
+
+        public CPLErr ReadRaster(int xOff, int yOff, int xSize, int ySize, IntPtr buffer, int buf_xSize, int buf_ySize, DataType buf_type, int pixelSpace, int lineSpace)
+        {
+            CPLErr ret = RasterIO(RWFlag.GF_Read, xOff, yOff, xSize, ySize, buffer, buf_xSize, buf_ySize, buf_type, pixelSpace, lineSpace);
+            return ret;
+        }
+
+        public CPLErr WriteRaster(int xOff, int yOff, int xSize, int ySize, IntPtr buffer, int buf_xSize, int buf_ySize, DataType buf_type, int pixelSpace, int lineSpace)
+        {
+            CPLErr ret = RasterIO(RWFlag.GF_Write, xOff, yOff, xSize, ySize, buffer, buf_xSize, buf_ySize, buf_type, pixelSpace, lineSpace); 
+            return ret;
         }
 
 

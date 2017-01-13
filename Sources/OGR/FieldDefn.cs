@@ -58,15 +58,15 @@ namespace Scanex.Gdal
         /// <summary>
         /// Fetch name of this field.
         /// </summary>
-        public string GetNameRef()
+        public string GetName()
         {
-            return GetNameRef(MarshalUtils.DefaultEncoding);
+            return GetName(MarshalUtils.DefaultEncoding);
         }
 
         /// <summary>
         /// Fetch name of this field.
         /// </summary>
-        public string GetNameRef(Encoding encoding)
+        public string GetName(Encoding encoding)
         {
             return MarshalUtils.PtrToStringEncoding(PInvokeOgr.OGR_Fld_GetNameRef(Handle), encoding);
         }

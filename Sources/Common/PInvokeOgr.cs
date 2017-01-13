@@ -7,8 +7,11 @@ namespace Scanex.Gdal
 {
     public static class PInvokeOgr
     {
-        //public const string GdalDllName = "gdal";
+#if LINUX
+        public const string GdalDllName = "gdal";
+#else
         public const string GdalDllName = "gdal201.dll";
+#endif
 
         #region Geometry
         [DllImport(GdalDllName, CallingConvention = CallingConvention.Cdecl)]
@@ -473,6 +476,11 @@ namespace Scanex.Gdal
         //OGRErr OGR_L_GetExtentEx	(	OGRLayerH 	hLayer,int 	iGeomField, OGREnvelope * 	psExtent,int 	bForce )	
         [DllImport(GdalDllName, CallingConvention = CallingConvention.Cdecl)]
         public static extern int OGR_L_GetExtentEx(IntPtr hLayer, int iGeomField, out Scanex.Gdal.Envelope psExtent, int force);
+
+        //OGRwkbGeometryType OGR_L_GetGeomType	(	OGRLayerH 	hLayer	)	
+        [DllImport(GdalDllName, CallingConvention = CallingConvention.Cdecl)]
+        public static extern wkbGeometryType OGR_L_GetGeomType(IntPtr hLayer);
+
 
         #endregion
 

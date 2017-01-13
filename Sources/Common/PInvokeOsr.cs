@@ -163,7 +163,7 @@ namespace Scanex.Gdal
 
         //OGRErr OSRSetWellKnownGeogCS	(	OGRSpatialReferenceH 	hSRS,const char * 	pszName )	
         [DllImport(PInvokeOgr.GdalDllName, CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Ansi)]
-        public static extern int OSRSetWellKnownGeogCS(IntPtr hSRS, string pszName);
+        public static extern int OSRSetWellKnownGeogCS(IntPtr hSRS, IntPtr pszName);
 
         //OGRErr OSRStripCTParms	(	OGRSpatialReferenceH 	hSRS	)	
         [DllImport(PInvokeOgr.GdalDllName, CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Ansi)]
@@ -252,6 +252,18 @@ namespace Scanex.Gdal
         //OGRErr OSRExportToPrettyWkt	(	OGRSpatialReferenceH 	hSRS,char ** 	ppszReturn,int 	bSimplify )	
         [DllImport(PInvokeOgr.GdalDllName, CallingConvention = CallingConvention.StdCall)]
         public static extern int OSRExportToPrettyWkt(IntPtr hSRS, ref IntPtr ppszReturn, int simplify);
+
+        //OGRErr CPL_STDCALL OSRExportToWkt( OGRSpatialReferenceH hSRS,char ** ppszReturn )
+        [DllImport(PInvokeOgr.GdalDllName, CallingConvention = CallingConvention.StdCall)]
+        public static extern int OSRExportToWkt(IntPtr hSRS, ref IntPtr ppszRetur);
+
+        //OGRErr CPL_STDCALL OSRExportToProj4( OGRSpatialReferenceH hSRS,char ** ppszReturn )
+        [DllImport(PInvokeOgr.GdalDllName, CallingConvention = CallingConvention.StdCall)]
+        public static extern int OSRExportToProj4(IntPtr hSRS, ref IntPtr ppszRetur);
+
+        //OGRErr OSRImportFromProj4	(	OGRSpatialReferenceH 	hSRS,const char * 	pszProj4 )	
+        [DllImport(PInvokeOgr.GdalDllName, CallingConvention = CallingConvention.Cdecl)]
+        public static extern int OSRImportFromProj4(IntPtr hSRS, IntPtr proj4);
 
 
         //******* Coordinate transformation class

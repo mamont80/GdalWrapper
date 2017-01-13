@@ -3,12 +3,14 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using Scanex.Gdal;
+using System.Runtime.InteropServices;
 
 namespace Scanex.Gdal
 {
     public static class Gdal
     {
         public delegate void GDALErrorHandlerDelegate(int eclass, int code, IntPtr msg);
+
         public delegate int GDALProgressFuncDelegate(double Complete, IntPtr Message, IntPtr Data);
 
         //нереализовано
@@ -50,6 +52,7 @@ void 	GDALSetDescription (GDALMajorObjectH, const char *)         */
         }
 
         internal static GdalObject theGdalObject = new GdalObject();
+
         /// <summary>
         /// Register all known configured GDAL drivers.
         /// This function will drive any of the following that are configured into GDAL. See raster list and vector full list
@@ -60,8 +63,14 @@ void 	GDALSetDescription (GDALMajorObjectH, const char *)         */
             PInvokeGdal.GDALAllRegister();
         }
 
+        public static Dataset OpenVector(string filename, GdalOpenAccessMode accessMode, GdalOpenSharedMode sharedMode = GdalOpenSharedMode.NoShared,
+                                         int extendFlags = 0, string[] allowedDrivers = null, string[] openOptions = null, string[] siblingFiles = null)
+        {
+            return OpenEx(filename, GdalOpenDriverKind.Vector, accessMode, sharedMode, extendFlags, allowedDrivers, openOptions, siblingFiles);
+        }
+
         public static Dataset OpenEx(string filename, GdalOpenDriverKind driverKind, GdalOpenAccessMode accessMode, GdalOpenSharedMode sharedMode = GdalOpenSharedMode.NoShared,
-            int extendFlags = 0, string[] allowedDrivers = null, string[] openOptions = null, string[] siblingFiles = null)
+                                     int extendFlags = 0, string[] allowedDrivers = null, string[] openOptions = null, string[] siblingFiles = null)
         {
             byte[] filenameU8 = MarshalUtils.StringToUtf8Bytes(filename);
             List<byte[]> siblingU8 = new List<byte[]>();
@@ -72,7 +81,7 @@ void 	GDALSetDescription (GDALMajorObjectH, const char *)         */
                     siblingU8.Add(MarshalUtils.StringToUtf8Bytes(siblingFile));
                 }
             }
-            int flags = extendFlags + (int)driverKind + (int)accessMode + (int)sharedMode;
+            int flags = extendFlags + (int) driverKind + (int) accessMode + (int) sharedMode;
             byte[][] siblingParam = siblingU8.ToArray();
             if (siblingU8.Count == 0) siblingParam = null;
 
@@ -87,7 +96,7 @@ void 	GDALSetDescription (GDALMajorObjectH, const char *)         */
                     Errors.ThrowLastError();
                     return null;
                 }
-                return new Dataset(p);                
+                return new Dataset(p);
             }
         }
 
@@ -121,6 +130,7 @@ void 	GDALSetDescription (GDALMajorObjectH, const char *)         */
                 return drv;
             }
         }
+
         /// <summary>
         /// Get data type size in bits.
         /// </summary>
@@ -290,7 +300,7 @@ void 	GDALSetDescription (GDALMajorObjectH, const char *)         */
         /// <returns>A GDALDriverH handle or NULL on failure. For C++ applications this handle can be cast to a GDALDriver *.</returns>
         public static Driver IdentifyDriver(string filename, string[] fileList)
         {
-            using(var fn = new MarshalUtils.StringExport(filename, Encoding.UTF8))
+            using (var fn = new MarshalUtils.StringExport(filename, Encoding.UTF8))
             using (var fl = new MarshalUtils.StringListExport(fileList, Encoding.UTF8))
             {
                 IntPtr p = PInvokeGdal.GDALIdentifyDriver(fn.Pointer, fl.Pointer);
@@ -329,10 +339,11 @@ void 	GDALSetDescription (GDALMajorObjectH, const char *)         */
             using (var s = new MarshalUtils.StringExport(filename, Encoding.UTF8))
             {
                 IntPtr p = PInvokeGdal.GDALOpen(s.Pointer, access);
-                if (p == null) return null;
+                if (p == IntPtr.Zero) return null;
                 return new Dataset(p, true, null);
             }
         }
+
         /// <summary>
         /// Open a raster file as a GDALDataset.
         /// This function works the same as GDALOpen(), but allows the sharing of GDALDataset handles for a dataset with other callers to GDALOpenShared().
@@ -409,9 +420,90 @@ void 	GDALSetDescription (GDALMajorObjectH, const char *)         */
         {
             using (var s = new MarshalUtils.StringExport(name, Encoding.UTF8))
             {
-                return (CPLErr)PInvokeGdal.VSIUnlink(s.Pointer);
+                return (CPLErr) PInvokeGdal.VSIUnlink(s.Pointer);
             }
         }
+
+        public static void FileFromMemBuffer(string filename, byte[] buf)
+        {
+            if (buf == null || buf.Length == 0) return;
+            IntPtr p = PInvokeGdal.VSIMalloc(buf.Length);
+            if (p == IntPtr.Zero) return;
+            Marshal.Copy(buf, 0, p, buf.Length);
+            using (var s = new MarshalUtils.StringExport(filename, Encoding.UTF8))
+            {
+                int tr = Convert.ToInt32(true);
+                IntPtr h = PInvokeGdal.VSIFileFromMemBuffer(s.Pointer, p, buf.Length, tr);
+                PInvokeGdal.VSIFCloseL(h);
+            }
+        }
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="destPath"></param>
+        /// <param name="srcDatasets"></param>
+        /// <param name="options"></param>
+        /// <param name="usageError"></param>
+        /// <returns>the output dataset (new dataset that must be closed using Close()) or NULL in case of error.</returns>
+        public static Dataset Wrap(string destPath, Dataset[] srcDatasets, WrapAppOptions options, out int usageError)
+        {
+            IntPtr[] list = new IntPtr[srcDatasets.Length];
+            for(int i = 0; i < srcDatasets.Length; i++)
+            {
+                list[i] = srcDatasets[i].Handle;
+            }
+            using (var path = new MarshalUtils.StringExport(destPath))
+            {
+                var h = PInvokeGdal.GDALWarp(path.Pointer, IntPtr.Zero, list.Length, list, options.Handle, out usageError);
+                if (h == IntPtr.Zero) return null;
+                Dataset ds = new Dataset(h, true, null);
+                return ds;
+            }
+        }
+
+        /// <summary>
+        /// Image reprojection and warping function.
+        /// </summary>
+        /// <returns>the output dataset (new dataset that must be closed using Close()) or NULL in case of error.</returns>
+        public static Dataset Wrap(Dataset destDS, Dataset[] srcDatasets, WrapAppOptions options, out int usageError)
+        {
+            IntPtr[] list = new IntPtr[srcDatasets.Length];
+            for (int i = 0; i < srcDatasets.Length; i++)
+            {
+                list[i] = srcDatasets[i].Handle;
+            }
+            var h = PInvokeGdal.GDALWarp(IntPtr.Zero, destDS.Handle, list.Length, list, options.Handle, out usageError);
+            if (h == IntPtr.Zero) return null;
+            Dataset ds = new Dataset(h, true, null);
+            return ds;
+        }
+
+        /// <summary>
+        /// Create and alloc memory virtual file. Return pointer which need free with gdal.Free(IntPtr)
+        /// </summary>
+        /// <param name="filename"></param>
+        /// <param name="size"></param>
+        /// <returns></returns>
+        public static IntPtr AllocFileMemBuffer(string filename, int size)
+        {
+            if (size == 0) return IntPtr.Zero;
+            IntPtr p = PInvokeGdal.VSIMalloc(size);
+            if (p == IntPtr.Zero) return IntPtr.Zero;
+
+            using (var s = new MarshalUtils.StringExport(filename, Encoding.UTF8))
+            {
+                int tr = Convert.ToInt32(true);
+                IntPtr h = PInvokeGdal.VSIFileFromMemBuffer(s.Pointer, p, size, tr);
+                PInvokeGdal.VSIFCloseL(h);
+            }
+            return p;
+        }
+
+        public static void Free(IntPtr pointer)
+        {
+            PInvokeGdal.VSIFree(pointer);
+        }
+
 
     }
 }

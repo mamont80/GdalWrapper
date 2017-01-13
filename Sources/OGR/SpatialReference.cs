@@ -160,5 +160,56 @@ namespace Scanex.Gdal
             return Errors.IsNoError(errCode);
         }
 
+        /// <summary>
+        /// Convert this SRS into WKT format.
+        /// </summary>
+        public bool ExportToWkt(out string wkt)
+        {
+            IntPtr p = IntPtr.Zero;
+            int errCode = PInvokeOsr.OSRExportToWkt(Handle, ref p);
+            wkt = MarshalUtils.PtrToStringEncoding(p, MarshalUtils.DefaultEncoding);
+            return Errors.IsNoError(errCode);
+        }
+        /// <summary>
+        /// Export coordinate system in PROJ.4 format.
+        /// </summary>
+        public bool ExportToProj4(out string proj4)
+        {
+            IntPtr p = IntPtr.Zero;
+            int errCode = PInvokeOsr.OSRExportToProj4(Handle, ref p);
+            proj4 = MarshalUtils.PtrToStringEncoding(p, MarshalUtils.DefaultEncoding);
+            return Errors.IsNoError(errCode);
+        }
+
+        /// <summary>
+        /// Import PROJ.4 coordinate string.
+        /// </summary>
+        public bool ImportFromProj4(string proj4)
+        {
+            using (var s = new MarshalUtils.StringExport(proj4))
+            {
+                int errCode = PInvokeOsr.OSRImportFromProj4(Handle, s.Pointer);
+                return Errors.IsNoError(errCode);
+            }
+        }
+        /// <summary>
+        /// Set a GeogCS based on well known name.
+        /// </summary>
+        public bool SetWellKnownGeogCS(string name)
+        {
+            using (var s = new MarshalUtils.StringExport(name))
+            {
+                int errCode = PInvokeOsr.OSRSetWellKnownGeogCS(Handle, s.Pointer);
+                return Errors.IsNoError(errCode);
+            }
+        }
+        /// <summary>
+        /// Set the Bursa-Wolf conversion to WGS84.
+        /// </summary>
+        public bool SetTOWGS84(double dfDX, double dfDY, double dfDZ, double dfEX, double dfEY, double dfEZ, double dfPPM)
+        {
+            int errCode = PInvokeOsr.OSRSetTOWGS84(Handle, dfDX, dfDY, dfDZ, dfEX, dfEY, dfEZ, dfPPM);
+            return Errors.IsNoError(errCode);
+        }
     }
 }

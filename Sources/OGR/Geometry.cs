@@ -187,6 +187,13 @@ namespace Scanex.Gdal
         {
             return PInvokeOgr.OGR_G_Area(Handle);
         }
+        /// <summary>
+        /// Area of geometry. Alias of Area()
+        /// </summary>
+        public double GetArea()
+        {
+            return Area();
+        }
 
         public int GetPointCount()
         {

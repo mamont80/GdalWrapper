@@ -50,7 +50,7 @@ namespace Scanex.Gdal
         }
 
         /// <summary>
-        /// Create a new dataset with this driver.
+        /// Create a new dataset with this driver. Raster or vector dataset.
         /// </summary>
         public Dataset Create(string filename, int xSize, int ySize, int bands, Scanex.Gdal.DataType bandType, string[] options)
         {
@@ -58,6 +58,24 @@ namespace Scanex.Gdal
             using (var s = new MarshalUtils.StringExport(filename, Encoding.UTF8))
             {
                 IntPtr p = PInvokeGdal.GDALCreate(Handle, s.Pointer, xSize, ySize, bands, bandType, o.Pointer);
+                if (p == IntPtr.Zero)
+                {
+                    Errors.ThrowLastError();
+                    return null;
+                }
+                return new Dataset(p, true, null);
+            }
+        }
+
+        /// <summary>
+        /// Create a new dataset with this driver.
+        /// </summary>
+        public Dataset Create(string filename, string[] options)
+        {
+            using (var o = new MarshalUtils.StringListExport(options))
+            using (var s = new MarshalUtils.StringExport(filename, Encoding.UTF8))
+            {
+                IntPtr p = PInvokeGdal.GDALCreate(Handle, s.Pointer, 0, 0, 0, DataType.GDT_Unknown, o.Pointer);
                 if (p == IntPtr.Zero)
                 {
                     Errors.ThrowLastError();

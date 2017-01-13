@@ -6,7 +6,7 @@ using System.Runtime.InteropServices;
 
 namespace Scanex.Gdal
 {
-    public abstract class CustomGdalObject
+    public abstract class CustomGdalObject: IDisposable
     {
         protected HandleRef swigCPtr;
         protected bool swigCMemOwn;
